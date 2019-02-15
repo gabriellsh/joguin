@@ -6,15 +6,17 @@ export default class Character{
 		this.sizeY = sizeY;
 		this.sprite = new Image();
 		this.sprite.src = sprite;
-		this.moving = false;
 		this.moveX = 0;
 		this.moveY = 0;
+		document.addEventListener("keydown", (e) => this.keyDownHandler(e),false);
+		document.addEventListener("keyup", (e) => this.keyUpHandler(e),false);
 	}
 
 	drawCharacter(context) {
-		context.drawImage(this.sprite, this.posY, this.posX, this.sizeX, this.sizeY);
-		console.log(this.moveY);
 		this.move(this.moveX,this.moveY);
+		context.drawImage(this.sprite, this.posX, this.posY, this.sizeX, this.sizeY);
+		console.log(this.moveX);
+		
 	}
 
 	move(xAmount,yAmount){
@@ -23,33 +25,33 @@ export default class Character{
 	}
 	
 	keyDownHandler(e) {
+		console.log(this.moveX);
 	    if(e.key == "Right" || e.key == "ArrowRight") {
-	        this.moveX = 5;
+	        this.moveX += 1;
 	    }
 	    else if(e.key == "Left" || e.key == "ArrowLeft") {
-	        this.moveX = -5;
+	        this.moveX += -1;
 	    }
 	    else if(e.key == "Up" || e.key == "ArrowUp") {
-	        this.moveY = 5;
+	        this.moveY += -1;
 	    }
 	    else if(e.key == "Down" || e.key == "ArrowDown") {
-	        this.moveY = -5;
+	        this.moveY += 1;
 	    }
-	    console.log(this.moveY);
 	}
 
 	keyUpHandler(e) {
 	    if(e.key == "Right" || e.key == "ArrowRight") {
-	        this.moveX = this.moveX -5;
+	        this.moveX += -1;
 	    }
 	    else if(e.key == "Left" || e.key == "ArrowLeft") {
-	        this.moveX = this.moveX +5;
+	        this.moveX += 1;
 	    }
 	    else if(e.key == "Up" || e.key == "ArrowUp") {
-	        this.moveY = this.moveY -5;
+	        this.moveY += 1;
 	    }
 	    else if(e.key == "Down" || e.key == "ArrowDown") {
-	        this.moveY = this.moveY  +5;
+	        this.moveY += -1;
 	    }
 	}
 }

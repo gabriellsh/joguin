@@ -6,9 +6,7 @@ var ninja = new Character(canvas.width/2,canvas.height/2,50,50,'./sprites/ninja.
 
 const context = canvas.getContext('2d');
 
-document.addEventListener("keydown", ninja.keyDownHandler);
-document.addEventListener("keyup", ninja.keyUpHandler);
-document.addEventListener("keydown", function(e){console.log(e.key);});
+
 
 
 function draw(){
