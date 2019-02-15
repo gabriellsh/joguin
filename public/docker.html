@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+</head>
+<body class=" bg-dark ">
+	<div class="container text-justify text-white">
+
+		<br><br>
+		<h1>Ambiente PHP-FPM/MySql com Docker-compose</h1>
+		<hr class="border-white w-100"><br><br>
+		<div class="w-100 justify-content-center d-flex mb-3"><img  width="600px" src="https://cdn-images-1.medium.com/max/1600/1*d-HKujYLR5Q2QED4ybEiPw.png"></div>
+		
+		<h3>&emsp;- Prólogo </h3>
+		<div class="rounded p-2 bg-secondary">
+			<p>Pense na seguinte hipótese. Você está desenvolvendo uma aplicação com PHP e MySQL na sua empresa que faz o cálculo do banco de horas de cada funcionário da sua empresa.</p>
+				
+			<p>Você passa algum tempo configurando o XAMPP, as portas do sistema, entre outras dependências do sistema. Durante o desenvolvimento você encara algumas dificuldades com o ambiente, acaba trocando de máquina, faz o setup de novo, mas vida que segue.</p>
+				
+			<p>Ao fim do desenvolvimento, lhe é dado a informação de que o sistema operacional em que a aplicação vai rodar é diferente do seu ambiente. Para completar, o hardware também é diferente e existem outras aplicações rodando no mesmo servidor. A enxaqueca se manifesta antes que você perceba.</p>
+		</div>
+		
+		<h3 class="mt-3">&emsp;- Capítulo 1: Inception</h3>
+		<div class="rounded p-2 bg-secondary">	
+			<p>No dia seguinte, você, com o projeto concluído, começa a procurar soluções de deploy em qualquer lugar possível. Até que, depois de um tempo, como se um anjo caísse do céu, lá está, a resposta de todos os seus problemas: Docker. Ou mais especificamente, Docker-compose.</p>
+				
+			<p>A ideia de subir um ambiente com diversos serviços com apenas uma linha de comando parece mágica. E pode ser.</p>
+			<div class="card text-dark">
+				<blockquote class="blockquote card-body">
+					<p class="mb-0">“Qualquer tecnologia suficientemente avançada é indistinguível da magia.”</p>
+					<footer class="blockquote-footer text-right mr-5">Clark, Arthur C.</footer>
+			</blockquote>
+			</div>
+	
+			<p class="mt-3">E o mais encantador no momento que você se encontra. A promessa de compatibilidade inabalável que ele oferece.</p>
+			<p>Tudo começa a fazer sentido. Containerização. Seus serviços rodam em serviços separados do resto do host, possibilitando a criação em qualquer sistema compatível com docker. Isso significa compatibilidade.</p>
+
+			<p>Mas não se engane achando que é apenas um ambiente de testes. Sua robustes já se comprovou diversas vezes. Você sabia que o jogo Pokémon GO utiliza dezenas de milhares de containers para disponibilizar esse serviço?</p>
+		
+		</div>
+		
+
+		<h3 class="mt-3">&emsp;- Capítulo 2: Limitless</h3>
+		
+		<div class="rounded p-2 bg-secondary">			
+			<p class="mt-3">Com 2 dias para a entrega, você vai à luta. E é aqui que meu trabalho começa.</p>
+			
+			<h5 class="ml-2">Subcapítulo 1: Primeiros passos.</h5>
+				<hr class="m-0 p-2">
+			
+			<p>Então, dado a devida introdução e descontração, mãos à obra. (Se você ainda não sabe o que é o docker, de uma olhadinha <a class="text-success" href="https://www.redhat.com/pt-br/topics/containers/what-is-docker">aqui</a>).</p>
+			
+			<p>O que você vai precisar:</p>
+			<ul>
+				<li>Um computador (de preferência com alguma dist. de Linux, para simplicidade)</li>
+				<li>A última versão do <kbd>docker</kbd>;</li>
+				<li>A última versão do <kbd>docker-compose</kbd>;</li>
+			</ul>
+
+			<p><a class="text-info" href="https://docs.docker.com/compose/install/">Aqui</a> você encontra como instalar a ultima versão de tudo.</p>
+		
+			<p>Só isso. O resto, o docker faz por você. Bom, se você mandar ele fazer a coisa certa.</p>
+				
+			<p>O docker trabalha com imagens, que, de modo bem simplificado, são os arquivos/instruções que são utilizados pelo docker para rodar a aplicação (Por exemplo alguma versão do redis). No site https://hub.docker.com/ você encontra todas as imagens disponibilizadas, desde versões oficiais do PHP até versões customizadas de aplicações feitas por usuários.</p>
+				
+			<p>Vamos utilizar 3 imagens oficiais para rodar nossa aplicação. O PHP-FPM, MySQL e o Nginx. “Ah mas tudo isso?” Calma, é mais simples do que parece.</p>
+				
+			<p>É ai que entra o docker-compose. Ele deixa a gente definir todos os serviços que vão rodar em apenas um arquivo, o docker-compose.yml.</p>
+	
+			<p>Nele vamos definir primeiro o serviço do Nginx, dessa maneira:</p>
+			<div class="p-1 rounded bg-dark text-white">
+				version:<code> '3.7'</code><br>
+				services:<br>
+				&emsp;nginx:<br>
+				&emsp;&emsp;image: <code>"nginx:latest"</code><br>
+				&emsp;&emsp;ports: <br>
+				&emsp;&emsp;&emsp;- <code>"80:80"</code><br>
+				&emsp;&emsp;volumes:<br>
+				&emsp;&emsp;&emsp;- <code>./public/:/code/</code><br>
+				&emsp;&emsp;&emsp;- <code>./config/nginx.conf:/etc/nginx/conf.d/default.conf</code><br>
+			</div>
+			<p class="mt-2">
+				Vamos tentar entender o que está acontecendo:
+				<ol>
+					<li>Definimos a versão do arquivo docker-compose para a mais atual da data que redijo este texto;</li>
+					<li>O que fica dentro de services o docker-compose vai transformar em um container novo;</li>
+					<li>Definimos o nome do serviço. Esse nome é arbitrário, mas é uma boa prática ser bem descritivo;</li>
+					<li>Definimos a imagem que utilizaremos para esse container</li>
+					<li>Mapeamos a porta 80 do serviço (que é a que fica na direita) para a porta 80 do host (pode ser a que desejar, desde que não tenha algum outro serviço utilizando a mesma porta)</li>
+					<li>Na tag <kbd>volumes:</kbd> mapeamos a pasta public para, suspense, a pasta public do Nginx. (Arquivos acessíveis do navegador);</li>
+					<li>Mapeamos também nosso arquivo de configuração personalizado. Já vamos falar sobre ele;</li>
+				</ol>
+			</p>
+
+			<p>Salve esse arquivo em uma pasta com o nome <kbd>docker-compose.yml</kbd>. Nesta pasta permanecerão os arquivos do projeto (dentro da pasta public), do docker e as configurações dos serviços (dentro da pasta config). Lembrando que todos esses caminhos são alteraveis.</p>
+
+			<p>Se tudo foi configurado corretamente, ao rodar o comando <kbd>sudo docker-compose up</kbd>, o docker deve começar a fazer o download da imagem (caso não tenha o feito ainda) e iniciar a aplicação. Quando pronto, pode verificar com o comando <kbd>sudo docker ps</kbd>, ele vai listar todos os serviços executando.</p>
+			<p>Em teoria basta acessar agora no seu navegar o endereço <i class="text-info"><b>localhost</b></i> que a página padrão do nginx deve exibir, e ele retornara arquivos html que estiverem na pasta <i class="text-info"><b>./public/</b></i></p>
+
+			<div class="w-100 justify-content-center d-flex mb-3"><img class="img-thumbnail" width="800px" src="https://cdn.wp.nginx.com/wp-content/uploads/2014/01/welcome-screen-e1450116630667.png"></div>
+
+			<h5 class="ml-2">Subcapítulo 2: A parte "difícil".</h5>
+				<hr class="m-0 p-2">
+
+			<p class="mt-2">
+				Agora vem a parte que dependendo de onde você procura, vai encontrar respostas diferentes. Vou explicar a que na opinião do seu locutor, é a mais fácil.
+			</p>
+			<p>
+				O primeiro passo é adicionar ao nosso <kbd>docker-compose.yml</kbd> os parâmetros de inicialização do <kbd>PHP-FPM</kbd>
+			</p>
+			<div class="p-1 rounded bg-dark text-white">
+				&emsp;php:<br>
+				&emsp;&emsp;ports:<br>
+				&emsp;&emsp;&emsp;- <code>"9000:9000"</code><br>
+				&emsp;&emsp;volumes:<br>
+				&emsp;&emsp;&emsp;- <code>./public/:/var/www/html</code><br>
+				&emsp;&emsp;&emsp;- <code>./public/:/public/</code><br>
+				&emsp;&emsp;image: <code>"php:7.3.1-fpm"</code><br>
+			</div>
+			<p class="mt-3">Nada de muito diferente: Mapeamos a porta de entrada de requisições do PHP-FPM e algumas pastas. Lembrando, tudo que fica <b>antes</b> do ":" é local, o que fica depois, do container. Isso serve tanto para pastas quanto portas.</p>
+			<p>Antes de testarmos, precisamos criar o arquivo <kbd>nginx.conf</kbd> (ou o que preferir, apenas tem que lembrar de mudar no arquivo docker-composer.yml) dentro da pasta <i class="text-info"><b>/config/</b></i>.</p>
+			<div class="p-1 rounded bg-dark text-white">
+				server {<br>
+				&emsp;index index.php index.html;&emsp;<i class="text-muted">#Definimos quais são os arquivos index</i><br> 
+				&emsp;server_name localhost;&emsp;<i class="text-muted">#O endereço do qual estamos acessando. Deixei localhost para simplicidade</i><br> 
+				&emsp;error_log  /var/log/nginx/error.log;&emsp;<i class="text-muted">#Nesta linha e na de baixo, expomos os logs de erro para que apareçam no terminal.</i><br> 
+				&emsp;access_log /var/log/nginx/access.log;<br>
+				&emsp;root /public;&emsp; <i class="text-muted">#Definimos qual a pasta public do nginx.</i><br><br>
+				&emsp;location ~* \.php$ {&emsp;<i class="text-muted">#A partir daqui redirecionamos os acessos à arquivos PHP para o serviço do PHP-FPM</i><br>
+				&emsp;&emsp;fastcgi_index   index.php;<br>
+				&emsp;&emsp;fastcgi_pass    123.456.78.9:9000;&emsp;<i class="text-muted">#Nesta linha é definido o endereço do PHP-FPM.</i><br> 
+				&emsp;&emsp;include         fastcgi_params;<br>
+				&emsp;&emsp;fastcgi_param   SCRIPT_FILENAME    $document_root$fastcgi_script_name;<br>
+				&emsp;&emsp;fastcgi_param   SCRIPT_NAME        $fastcgi_script_name;<br>
+				&emsp;}<br>
+				}
+			</div>
+
+			<p class="mt-3">
+				Uma observação: na hora de definir o <i class="text-info"><b>fastcgi_pass</b></i>, é muito comum ver o endereço utilizado ser <i class="text-info"><b>127.0.0.1</b></i>. Porém dependendo de como a rede do computador foi configurada, isso pode gerar problemas. O ideal é pegar o IP interno da sua rede e usá-lo. Caso veja também algo como <i class="text-info"><b>php:9000</b></i>, isso significa que a pessoa usou o parâmetro <code>links:</code> no arquivo docker-compose.yml. Isto é visto de um tempo para cá como má prática, já que é código legado, ou seja, pode ser removido a qualquer momento do <kbd>docker</kbd>. Essa informação é divulgada na própria documentação do mesmo.
+			</p>
+
+			<p>
+				Agora sim. Salve o arquivo e vá até a pasta public. Nela iremos criar um arquivo php que utilizaremos de teste.
+			</p>
+			<div class="p-1 rounded bg-dark text-white">
+					&lt;php?<br>
+					<code>&emsp;phpinfo();<br></code>
+					?>
+			</div>
+
+			<p class="mt-3">Agora sim, volta na pasta principal e rode <kbd>sudo docker-compose up</kbd></p>
+			<p>Ao acessar <i class="text-info">localhost/nome-do-arquivo.php</i> informações sobre o php vão aparecer.</p>
+			<div class="w-100 justify-content-center d-flex mb-3"><img class="img-thumbnail" width="800px" src="http://schweb.kinghost.net/artigo/php.png"></div>
+
+			<p>Pronto, a parte mais "longa" do processo já foi.</p>
+
+			<h5 class="ml-2">Subcapítulo 3: O Ato final.</h5>
+			<hr class="m-0 p-2">
+			<p>Vamos agora adicionar o serviço de banco de dados: O MySql. Vamos ao arquivo docker-compose.yml</p>
+			<div class="p-1 rounded bg-dark text-white">
+				version:<code> '3.7'</code><br>
+				services:<br>
+				&emsp;nginx:<br>
+				&emsp;&emsp;image: <code>"nginx:latest"</code><br>
+				&emsp;&emsp;ports: <br>
+				&emsp;&emsp;&emsp;- <code>"80:80"</code><br>
+				&emsp;&emsp;volumes:<br>
+				&emsp;&emsp;&emsp;- <code>./public/:/public/</code><br>
+				&emsp;&emsp;&emsp;- <code>./config/nginx.conf:/etc/nginx/conf.d/default.conf</code><br><br>
+				&emsp;php:<br>
+				&emsp;&emsp;ports:<br>
+				&emsp;&emsp;&emsp;- <code>"9000:9000"</code><br>
+				&emsp;&emsp;volumes:<br>
+				&emsp;&emsp;&emsp;- <code>./public/:/var/www/html</code><br>
+				&emsp;&emsp;&emsp;- <code>./public/:/public/</code><br>
+				&emsp;&emsp;image: <code>"php:7.3.1-fpm"</code><br><br>
+				&emsp;db:<br>
+				&emsp;&emsp;image: <code>"mysql:latest"</code><br>
+				&emsp;&emsp;command: <code>--default-authentication-plugin=mysql_native_password</code><br>
+				&emsp;&emsp;volumes:<br>
+				&emsp;&emsp;&emsp; <code>- ./db/:/var/lib/mysql<br></code>
+				&emsp;&emsp;ports:<br>
+				&emsp;&emsp;&emsp; <code>- "3306:3306"<br></code>
+				&emsp;&emsp;environment:<br>
+				&emsp;&emsp;&emsp;MYSQL_ROOT_PASSWORD:<code> "root"</code><br>
+				&emsp;&emsp;&emsp;MYSQL_USER: <code>"admin"</code><br>
+				&emsp;&emsp;&emsp;MYSQL_PASSWORD: <code>"admin"</code><br>
+				&emsp;&emsp;&emsp;MYSQL_DATABASE: <code>"db"</code><br>
+			</div>
+
+			<p class="mt-3">Temos algumas coisas diferentes agora. Uma delas são os parâmetros de <i class="text-info"><b>environment</b></i>. Esses parâmetros definem algumas propriedades básicas dos serviços. No nosso caso do MySql, definimos um nome para uma base padrão que vai ser criada, uma senha de root e um usuário.</p>
+			<p>Outro que deve ter percebido é o <i class="text-info"><b>command</b></i>. Ele passa ao serviço comandos para serem executados durante o startup do serviço. Esse no caso serve para podermos conectar ao MySQL 8 com um usuário e senhas comuns.</p>
+			<p>A unica coisa que falta é instalar as extensões do MySQL no PHP. Para fazer isso iremos criar um arquivo chamado <kbd>dockerfile</kbd>. Nesse arquivo, vamos colocar comandos para que o PHP-FPM execute.</p>
+			<div class="p-1 rounded bg-dark text-white">
+			FROM php:7.3.1-fpm<br>
+			RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable mysqli pdo pdo_mysql
+			</div>
+			<p class="mt-3"> Agora informamos ao docker-compose.yml que é para utilizar este arquivo:</p>
+
+			<div class="p-1 rounded bg-dark text-white">
+				&emsp;&emsp;build: <br>
+				&emsp;&emsp;&emsp;context: <code>./</code><br>
+				&emsp;&emsp;&emsp;dockerfile: <code>dockerfile</code><br>
+			</div>
+			<p class="mt-3">Concluído. Para garantir que tudo vai funcionar, vamos remover todos os serviços do docker e recrialos. Podemos fazer isso com o comando <kbd>sudo docker rm -f $(sudo docker ps -q)</kbd>. CUIDADO! Esse comando apaga todos os volumes do docker.</p>
+
+			Deixo por fim um repositório com todos os arquivos e estrutura de pastas como tem que ser, junto com alguns arquivos para que possa testar a conexão com o banco de dados. Você pode acessar clicando <a class="text-success" href="https://github.com/gabriellsh/phpfpm_mysql">aqui</a>.
+			
+		</div>
+		<h3 class="mt-3">&emsp;- Capítulo Final: A Onda</h3>
+		<div class="rounded p-2 bg-secondary">
+			<p class="mt-2 ">Nos 45 do segundo tempo, você da deploy no projeto. Ganha aquele aumento que estava precisando, uma moral com o chefe e a colega que você estava de olho te chama para um jantar. Tudo porque um nerd um dia pensou "E se..."</p>
+			<p>Brincadeiras a parte, podemos ver como o docker é uma ferramenta maravilhosa. É simples de usar, leve e robusto. Seu uso tem crescido exponencialmente nos ultimos anos, e a tendência é cada vez mais aumentar.</p>
+			<p>Com grandes empresas como Google, Niantic (Pokémon GO), Amazon e muitos outros começando a adotar a tecnologia, fica a dúvida, o que o docker <b>não</b> pode fazer? Essa resposta eu vou ficar devendo...</p>
+			<p>Existem sistemas que orquestram enormes quantidades de containers, como por exemplo o <i class="text-info"> kubernetes</i> e <i class="text-info">docker swarm</i>. Eles possibilitam que centenas, ou até milhares de containers sejam executados ao mesmo tempo, como é o caso do Pokemón GO, que utiliza o kubernetes e o sistema do Google (que a princípio foi quem desenvolveu o "kube") para disponibilizar o jogo para o mundo todo. São dezenas de milhares de containers, tudo possibilitado pelo docker e o orquestramento do kube. Não é incrível?</p>
+
+
+			<div class="w-100 justify-content-center d-flex mb-3"><img class="img-thumbnail" width="200px" src="https://pbs.twimg.com/media/CtjnCHJUAAAbT4n.jpg"></div>
+
+		</div>
+		<h1 class="text-right">Fim.</h1>
+		<footer class="blockquote-footer text-right text-info">Gabriel Schnorr Henriques</footer>
+
+
+<style>
+p{
+	margin-left: 10px;
+	margin-right: 10px;
+}
+a{
+
+}
+
+
+</style>
+</body>
+</html>
